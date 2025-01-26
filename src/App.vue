@@ -1,61 +1,77 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
+  <header class="d-flex align-items-center justify-content-between mb-3">
     <RouterLink to="/">
-      <h1><span class="primary-text">Song</span>Notes</h1>
+      <img src="@/assets/songnotes_cropped.png" alt="logo" height="100px" />
     </RouterLink>
 
-    <!-- <nav>
-      <RouterLink to="/add">Add new</RouterLink>
-    </nav> -->
+    <transition name="fade">
+      <div v-if="isHomePage" class="d-flex align-items-center gap-3">
+        <input
+          type="text"
+          name="searchBar"
+          class="form-control"
+          placeholder="Search..."
+          v-model="searchQuery"
+          @input="onSearch"
+          style="max-width: 400px"
+        />
+        <RouterLink to="/add">
+          <font-awesome-icon
+            icon="fa-solid fa-circle-plus"
+            style="color: #ffd369; font-size: 3rem"
+          />
+        </RouterLink>
+      </div>
+    </transition>
   </header>
-
   <RouterView />
 </template>
 
+<script>
+import { computed } from 'vue'
+import { useRoute, RouterView, RouterLink } from 'vue-router'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faCirclePlus } from '@fortawesome/free-solid-svg-icons'
+
+// Add the icon to the library
+library.add(faCirclePlus)
+
+export default {
+  data() {
+    return {
+      searchQuery: '',
+    }
+  },
+  setup() {
+    const route = useRoute()
+
+    // Check if the current route is Home
+    const isHomePage = computed(() => route.name === 'Home')
+
+    return {
+      isHomePage,
+    }
+  },
+  methods: {
+    onSearch() {
+      this.$emit('search', this.searchQuery) // Emits search query for Home.vue to handle
+    },
+  },
+  components: {
+    FontAwesomeIcon,
+  },
+}
+</script>
+
 <style scoped>
-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  padding-bottom: 2rem;
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 
-header a {
-  font-size: 1.5rem;
-  margin: 0;
-  text-align: center;
-  color: var(--color-text);
-}
-
-h1 .primary-text,
-a h1 {
-  font-weight: bold;
-}
-
-.primary-text {
-  color: var(--primary-color);
-}
-
-nav {
-  align-self: flex-end;
-}
-
-nav a {
-  font-size: 1.5rem;
-  font-weight: bold;
-  background-color: var(--primary-color);
-  color: var(--color-background);
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-}
-
-nav a:hover {
-  background-color: var(--primary-color-hover);
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease-out;
 }
 </style>
