@@ -13,7 +13,7 @@
           placeholder="Search..."
           v-model="searchQuery"
           @input="onSearch"
-          style="max-width: 400px"
+          style="max-width: 500px"
         />
         <RouterLink to="/add">
           <font-awesome-icon
@@ -24,7 +24,7 @@
       </div>
     </transition>
   </header>
-  <RouterView />
+  <RouterView :searchQuery="searchQuery" />
 </template>
 
 <script>

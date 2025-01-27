@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-5">
-    <h2 class="text-center">Add New Song!</h2>
+    <h2 class="text-center">Add New Song</h2>
 
     <SongForm />
   </div>

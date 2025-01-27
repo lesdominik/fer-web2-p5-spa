@@ -22,11 +22,13 @@ const router = createRouter({
       path: '/edit/:id',
       name: 'EditSong',
       component: EditSongView,
+      props: true,
     },
     {
       path: '/lyrics/:id',
       name: 'Lyrics',
       component: LyricsView,
+      props: true,
     },
     {
       path: '/:catchAll(.*)',

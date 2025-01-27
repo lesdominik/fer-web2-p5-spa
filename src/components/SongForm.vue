@@ -3,7 +3,7 @@
     <div class="row justify-content-center">
       <div class="col-md-6">
         <div class="mb-3">
-          <label for="title" class="form-label">Song Title</label>
+          <label for="title" class="form-label">Song Title *</label>
           <input
             id="title"
             class="form-control"
@@ -19,7 +19,7 @@
 
         <div class="mb-3">
           <label for="author" class="form-label">Author</label>
-          <input id="author" class="form-control" v-model="form.author" placeholder="unknown" />
+          <input id="author" class="form-control" v-model="form.author" />
         </div>
 
         <div class="mb-3">
@@ -70,20 +70,16 @@
         </div>
 
         <div class="mb-3">
-          <label for="sourceText" class="form-label">Source</label>
-          <input
-            id="sourceText"
-            class="form-control"
-            v-model="form.sourceText"
-            placeholder="Source"
-          />
-          <input
+          <label for="sourceText" class="form-label">Album</label>
+          <input id="sourceText" class="form-control" v-model="form.sourceText" />
+          <!-- <input
             id="sourceFile"
             type="file"
             class="form-control mt-2"
             @change="handleFileUpload"
             accept=".pdf"
-          />
+            
+          /> -->
         </div>
 
         <div class="mb-3">
@@ -98,7 +94,7 @@
 
         <div class="d-flex justify-content-between">
           <RouterLink to="/" class="btn btn-secondary">Cancel</RouterLink>
-          <button type="submit" class="btn btn-primary">Add</button>
+          <button type="submit" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
@@ -107,28 +103,44 @@
 
 <script>
 import { database, storage } from '@/firebase/firebaseConfig'
-import { ref as dbRef, push, get } from 'firebase/database'
+import { ref as dbRef, push, get, update } from 'firebase/database'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { useSongChangeStore } from '@/stores/songChangeStore'
 
 export default {
+  props: {
+    id: {
+      type: String,
+    },
+    existingSong: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
+
   data() {
     return {
       form: {
-        title: '',
-        author: '',
-        categories: [],
-        sourceText: '',
+        title: this.existingSong.title || '',
+        author: this.existingSong.author || '',
+        categories: this.existingSong.categories || [],
+        sourceText: this.existingSong.sourceText || '',
         sourceFile: null,
-        youtubeLink: '',
-        lyrics: '',
+        youtubeLink: this.existingSong.youtubeLink || '',
+        lyrics: this.existingSong.lyrics || '',
       },
       categories: [],
       newCategory: '',
-      selectedCategories: [],
+      selectedCategories: this.existingSong.categories || [],
       errors: {
         title: '',
       },
     }
+  },
+  setup() {
+    const songChangeStore = useSongChangeStore()
+
+    return { songChangeStore }
   },
   methods: {
     handleFileUpload(event) {
@@ -170,7 +182,7 @@ export default {
     },
 
     async handleSubmit() {
-      if (!this.form.title || (!this.form.sourceText && !this.form.sourceFile)) {
+      if (!this.form.title) {
         alert('Please provide all required fields.')
         return
       }
@@ -194,7 +206,13 @@ export default {
         lyrics: this.form.lyrics,
       }
 
-      await push(dbRef(database, 'songs'), newSong)
+      if (this.id) {
+        await update(dbRef(database, `songs/${this.id}`), newSong)
+        this.songChangeStore.addChange(`Updated song: ${formattedTitle}`)
+      } else {
+        await push(dbRef(database, 'songs'), newSong)
+        this.songChangeStore.addChange(`Added new song: ${formattedTitle}`)
+      }
 
       const categoriesRef = dbRef(database, 'categories')
       const snapshot = await get(categoriesRef)
